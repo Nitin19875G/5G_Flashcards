@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G MAC Layer Flashcards</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+        const { ChevronLeft, ChevronRight, RotateCcw, CheckCircle, XCircle, BookOpen } = lucide;
+
+        const Flashcards = () => {
+            const [currentCard, setCurrentCard] = useState(0);
+            const [showAnswer, setShowAnswer] = useState(false);
+            const [knownCards, setKnownCards] = useState(new Set());
+            const [reviewCards, setReviewCards] = useState(new Set());
+
+            const flashcards = [
+                {
+                    question: "What is the primary function of the MAC layer in 5G NR?",
+                    answer: "The MAC layer handles scheduling of uplink and downlink transmissions, multiplexing/demultiplexing of MAC SDUs, error correction through HARQ, and logical channel prioritization."
+                },
+                {
+                    question: "What does HARQ stand for and what is its purpose?",
+                    answer: "Hybrid Automatic Repeat Request. It combines forward error correction with ARQ for reliable data transmission. In 5G, it provides fast retransmission of erroneous data blocks."
+                },
+                {
+                    question: "What are the main logical channels in 5G MAC?",
+                    answer: "BCCH (Broadcast Control Channel), PCCH (Paging Control Channel), CCCH (Common Control Channel), DCCH (Dedicated Control Channel), and DTCH (Dedicated Traffic Channel)."
+                },
+                {
+                    question: "Explain the difference between dynamic and semi-persistent scheduling in 5G.",
+                    answer: "Dynamic scheduling: Resources allocated per TTI via DCI. Semi-persistent scheduling: Periodic resource allocation configured by RRC, reducing control overhead for periodic traffic like VoIP."
+                },
+                {
+                    question: "What is a Transport Block (TB) in 5G MAC?",
+                    answer: "A Transport Block is the unit of data passed between MAC and PHY layers. It contains MAC PDUs and is the unit for which HARQ operates. One or two TBs can be transmitted per TTI depending on MIMO configuration."
+                },
+                {
+                    question: "How does Logical Channel Prioritization (LCP) work?",
+                    answer: "LCP determines which logical channels get resources when multiple channels have data to transmit. It uses priority levels and Prioritized Bit Rate (PBR) to ensure QoS requirements are met."
+                },
+                {
+                    question: "What is the role of MAC CE (Control Elements)?",
+                    answer: "MAC CEs carry control information within MAC PDUs, such as Buffer Status Reports (BSR), Power Headroom Reports (PHR), and timing advance commands. They enable efficient resource management."
+                },
+                {
+                    question: "Describe the 5G MAC PDU structure.",
+                    answer: "MAC PDU consists of: MAC header (with sub-headers for each MAC CE/SDU), zero or more MAC CEs, zero or more MAC SDUs, and optional padding. Each sub-header contains LCID and length information."
+                },
+                {
+                    question: "What is BWP (Bandwidth Part) and how does MAC handle it?",
+                    answer: "BWP is a subset of carrier bandwidth that a UE monitors/operates on. MAC coordinates with RRC for BWP switching and manages scheduling within the active BWP to optimize power consumption."
+                },
+                {
+                    question: "How does 5G MAC support URLLC (Ultra-Reliable Low Latency Communication)?",
+                    answer: "Through mini-slots (shorter TTI), grant-free transmission, pre-emption of eMBB transmissions, repetition mechanisms, and prioritized scheduling with strict latency budgets."
+                },
+                {
+                    question: "What is the difference between Type 1 and Type 2 PUSCH transmission?",
+                    answer: "Type 1: Grant-based, requires scheduling grant from gNB. Type 2: Grant-free (configured grant), allows immediate transmission using pre-configured resources, reducing latency."
+                },
+                {
+                    question: "Explain MAC Random Access procedure in 5G.",
+                    answer: "4-step process: 1) UE sends preamble on PRACH, 2) gNB responds with RAR, 3) UE sends connection request, 4) gNB sends contention resolution. 2-step procedure also available for reduced latency."
+                },
+                {
+                    question: "What are the key differences between 4G and 5G MAC scheduling?",
+                    answer: "5G adds: flexible numerology support, mini-slot scheduling, grant-free transmission, BWP-based operation, enhanced HARQ with multiple processes, and support for URLLC/mMTC services."
+                },
+                {
+                    question: "How does MAC handle Carrier Aggregation in 5G?",
+                    answer: "MAC manages multiple component carriers simultaneously, performs cross-carrier scheduling, handles separate HARQ processes per carrier, and coordinates resources across carriers for maximum throughput."
+                },
+                {
+                    question: "What is the purpose of DRX (Discontinuous Reception) in MAC?",
+                    answer: "DRX allows UE to power down receiver during inactive periods to save battery. MAC coordinates DRX cycles with scheduling decisions and buffer status to maintain QoS while optimizing power consumption."
+                }
+            ];
+
+            const nextCard = () => {
+                setCurrentCard((prev) => (prev + 1) % flashcards.length);
+                setShowAnswer(false);
+            };
+
+            const prevCard = () => {
+                setCurrentCard((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+                setShowAnswer(false);
+            };
+
+            const markKnown = () => {
+                setKnownCards(prev => new Set([...prev, currentCard]));
+                setReviewCards(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentCard);
+                    return newSet;
+                });
+                nextCard();
+            };
+
+            const markForReview = () => {
+                setReviewCards(prev => new Set([...prev, currentCard]));
+                setKnownCards(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(currentCard);
+                    return newSet;
+                });
+                nextCard();
+            };
+
+            const resetProgress = () => {
+                setKnownCards(new Set());
+                setReviewCards(new Set());
+                setCurrentCard(0);
+                setShowAnswer(false);
+            };
+
+            const progress = (knownCards.size / flashcards.length) * 100;
+
+            return React.createElement('div', {
+                className: "max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen"
+            },
+                React.createElement('div', { className: "text-center mb-8" },
+                    React.createElement('h1', {
+                        className: "text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2"
+                    },
+                        React.createElement(BookOpen, { className: "text-blue-600" }),
+                        "5G MAC Layer Flashcards"
+                    ),
+                    React.createElement('p', {
+                        className: "text-gray-600"
+                    }, "Master the key concepts of 5G MAC layer protocol")
+                ),
+                
+                React.createElement('div', { className: "mb-6" },
+                    React.createElement('div', {
+                        className: "flex justify-between text-sm text-gray-600 mb-2"
+                    },
+                        React.createElement('span', {}, `Progress: ${knownCards.size}/${flashcards.length} cards mastered`),
+                        React.createElement('span', {}, `${Math.round(progress)}% complete`)
+                    ),
+                    React.createElement('div', { className: "w-full bg-gray-200 rounded-full h-3" },
+                        React.createElement('div', {
+                            className: "bg-gradient-to-r from-blue-500 to-green-500 h-3 rounded-full transition-all duration-300",
+                            style: { width: `${progress}%` }
+                        })
+                    )
+                ),
+
+                React.createElement('div', { className: "grid grid-cols-3 gap-4 mb-6" },
+                    React.createElement('div', { className: "bg-green-100 p-3 rounded-lg text-center" },
+                        React.createElement('div', { className: "text-2xl font-bold text-green-700" }, knownCards.size),
+                        React.createElement('div', { className: "text-sm text-green-600" }, "Known")
+                    ),
+                    React.createElement('div', { className: "bg-yellow-100 p-3 rounded-lg text-center" },
+                        React.createElement('div', { className: "text-2xl font-bold text-yellow-700" }, reviewCards.size),
+                        React.createElement('div', { className: "text-sm text-yellow-600" }, "Review")
+                    ),
+                    React.createElement('div', { className: "bg-blue-100 p-3 rounded-lg text-center" },
+                        React.createElement('div', { className: "text-2xl font-bold text-blue-700" }, 
+                            flashcards.length - knownCards.size - reviewCards.size
+                        ),
+                        React.createElement('div', { className: "text-sm text-blue-600" }, "New")
+                    )
+                ),
+
+                React.createElement('div', {
+                    className: "bg-white rounded-xl shadow-lg p-8 mb-6 min-h-[300px] relative"
+                },
+                    React.createElement('div', {
+                        className: "absolute top-4 right-4 text-sm text-gray-500"
+                    }, `${currentCard + 1} / ${flashcards.length}`),
+                    
+                    React.createElement('div', { className: "h-full flex flex-col justify-center" },
+                        React.createElement('div', { className: "text-center mb-6" },
+                            React.createElement('h2', {
+                                className: "text-lg font-semibold text-gray-700 mb-4"
+                            }, showAnswer ? "Answer" : "Question"),
+                            React.createElement('div', {
+                                className: "text-xl leading-relaxed"
+                            }, showAnswer ? flashcards[currentCard].answer : flashcards[currentCard].question)
+                        ),
+                        
+                        React.createElement('div', { className: "flex justify-center" },
+                            React.createElement('button', {
+                                onClick: () => setShowAnswer(!showAnswer),
+                                className: "bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                            }, showAnswer ? "Show Question" : "Show Answer")
+                        )
+                    ),
+
+                    React.createElement('div', { className: "absolute bottom-4 left-4" },
+                        knownCards.has(currentCard) && React.createElement('div', {
+                            className: "flex items-center text-green-600 text-sm"
+                        },
+                            React.createElement(CheckCircle, { size: 16, className: "mr-1" }),
+                            "Known"
+                        ),
+                        reviewCards.has(currentCard) && React.createElement('div', {
+                            className: "flex items-center text-yellow-600 text-sm"
+                        },
+                            React.createElement(XCircle, { size: 16, className: "mr-1" }),
+                            "Review"
+                        )
+                    )
+                ),
+
+                React.createElement('div', { className: "flex flex-wrap justify-center gap-4" },
+                    React.createElement('button', {
+                        onClick: prevCard,
+                        className: "flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        React.createElement(ChevronLeft, { size: 20 }),
+                        "Previous"
+                    ),
+                    
+                    showAnswer && [
+                        React.createElement('button', {
+                            key: "known",
+                            onClick: markKnown,
+                            className: "flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        },
+                            React.createElement(CheckCircle, { size: 20 }),
+                            "I Know This"
+                        ),
+                        
+                        React.createElement('button', {
+                            key: "review",
+                            onClick: markForReview,
+                            className: "flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        },
+                            React.createElement(XCircle, { size: 20 }),
+                            "Need Review"
+                        )
+                    ],
+                    
+                    React.createElement('button', {
+                        onClick: nextCard,
+                        className: "flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        "Next",
+                        React.createElement(ChevronRight, { size: 20 })
+                    ),
+                    
+                    React.createElement('button', {
+                        onClick: resetProgress,
+                        className: "flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    },
+                        React.createElement(RotateCcw, { size: 20 }),
+                        "Reset"
+                    )
+                ),
+
+                React.createElement('div', {
+                    className: "text-center mt-6 text-sm text-gray-600"
+                }, "Click \"Show Answer\" to reveal the answer, then mark whether you know it or need to review it")
+            );
+        };
+
+        ReactDOM.render(React.createElement(Flashcards), document.getElementById('root'));
+    </script>
+</body>
+</html>
